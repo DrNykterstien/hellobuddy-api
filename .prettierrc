@@ -1,0 +1,10 @@
+{
+  "cursorOffset": -1,
+  "semi": true,
+  "trailingComma": "none",
+  "singleQuote": true,
+  "arrowParens": "avoid",
+  "printWidth": 100,
+  "embeddedLanguageFormatting": "auto",
+  "tabWidth": 2
+}
