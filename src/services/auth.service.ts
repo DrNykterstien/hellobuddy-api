@@ -6,6 +6,7 @@ import { Op } from 'sequelize';
 import sequelize from '../utils/db';
 import { hashPassword, trimAllSpaces } from '../utils/helpers';
 import { Request } from 'express';
+import { Socket } from 'socket.io';
 import env from '../utils/env-vars';
 
 export async function _register(input: any) {
@@ -70,8 +71,35 @@ export async function getUserFromHeaders(req: Request) {
   }
 }
 
+export async function getUserFromSocketHeaders(socket: Socket) {
+  try {
+    const token = getAuthTokenFromSocketHeaders(socket);
+    if (!token) return null;
+    const jwtPayload = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
+    return await User.findOne({
+      where: { id: jwtPayload?.userId },
+      attributes: { exclude: ['password'] },
+      raw: true
+    });
+  } catch (error) {
+    // invalid signature OR jwt expired
+    return null;
+  }
+}
+
 function getAuthTokenFromHeaders(req: Request) {
   if (req.headers && (req.headers.authorization || req.headers.Authorization))
     return ((req.headers.authorization ?? req.headers.Authorization) as string).split(' ')[1];
+  else return null;
+}
+
+function getAuthTokenFromSocketHeaders(socket: Socket) {
+  if (
+    socket.handshake.headers &&
+    (socket.handshake.headers.authorization || socket.handshake.headers.Authorization)
+  )
+    return (
+      (socket.handshake.headers.authorization ?? socket.handshake.headers.Authorization) as string
+    ).split(' ')[1];
   else return null;
 }
