@@ -10,6 +10,8 @@ import {
   Unique,
   UpdatedAt
 } from 'sequelize-typescript';
+import { paginate } from '../utils/paginator';
+import { Order } from 'sequelize';
 
 @Table({
   timestamps: true
@@ -46,4 +48,16 @@ export class User extends Model {
   @UpdatedAt
   @Column(DataType.DATE)
   updatedAt!: Date;
+
+  static async paginate(
+    where = {},
+    order: Order = [['createdAt', 'DESC']],
+    include: any[] = [],
+    page = 1,
+    limit = 20,
+    attributes: any[] = [],
+    nestAndRaw = true
+  ) {
+    return paginate<User>(this, where, order, include, page, limit, attributes, nestAndRaw);
+  }
 }

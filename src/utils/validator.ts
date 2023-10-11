@@ -3,7 +3,7 @@ import { validate } from 'class-validator';
 import ApiError from './api-error';
 
 async function InputValidator(schema: any, input: any) {
-  const obj = plainToInstance(schema, input);
+  const obj = plainToInstance(schema, input, { enableImplicitConversion: true });
   const errors = await validate(obj);
   if (errors.length > 0) {
     const msg = errors
@@ -13,7 +13,7 @@ async function InputValidator(schema: any, input: any) {
       })
       .join(',');
     throw new ApiError(422, msg);
-  } else return input;
+  } else return obj;
 }
 
 export default InputValidator;
