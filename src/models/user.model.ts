@@ -1,9 +1,11 @@
+import { Order } from 'sequelize';
 import {
   AllowNull,
   Column,
   CreatedAt,
   DataType,
   Default,
+  HasMany,
   Model,
   PrimaryKey,
   Table,
@@ -11,7 +13,8 @@ import {
   UpdatedAt
 } from 'sequelize-typescript';
 import { paginate } from '../utils/paginator';
-import { Order } from 'sequelize';
+import { Message } from './message.model';
+import { UserChat } from './user-chat.model';
 
 @Table({
   timestamps: true
@@ -40,6 +43,12 @@ export class User extends Model {
   @AllowNull(false)
   @Column
   password!: string;
+
+  @HasMany(() => Message)
+  messages?: Message[];
+
+  @HasMany(() => UserChat)
+  userChats?: UserChat[];
 
   @CreatedAt
   @Column(DataType.DATE)

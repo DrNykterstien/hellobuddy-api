@@ -3,3 +3,9 @@ export enum SocketEventsEnum {
   DISCONNECT_EVENT = 'disconnect',
   ERROR_EVENT = 'error'
 }
+
+export enum MessageAttachmentTypesEnum {
+  IMAGE = 'image',
+  SOUND = 'sound',
+  VIDEO = 'video'
+}
