@@ -34,3 +34,9 @@ export class createGroupChatDto {
   @ArrayNotEmpty()
   participants!: string[];
 }
+
+export class GetChatDto {
+  @IsUUID('4')
+  @IsNotEmpty()
+  chatId!: string;
+}

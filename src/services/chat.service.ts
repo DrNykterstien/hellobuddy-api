@@ -38,6 +38,21 @@ export async function _createGroupChat(currentUser: any, input: any) {
   });
 }
 
+export async function _getChat(currentUser: any, input: any) {
+  return await sequelize.transaction(async trx => {
+    const { chatId } = input;
+    const userChat = await UserChat.findOne({
+      where: { userId: currentUser.id, chatId }
+    });
+    if (!userChat) throw new ApiError(610);
+    const chat = await Chat.findOne({
+      where: { id: chatId },
+      raw: true
+    });
+    return chat;
+  });
+}
+
 async function getChatIdIfPersonalChatExists(userIds: [string, string]) {
   const result = await UserChat.findAll({
     attributes: ['chatId'],

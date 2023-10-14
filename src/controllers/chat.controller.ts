@@ -1,6 +1,6 @@
 import { Request } from 'express';
-import { createGroupChatDto, createOrGetPersonalChatDto } from '../dtos/chat.dto';
-import { _createGroupChat, _createOrGetPersonalChat } from '../services/chat.service';
+import { GetChatDto, createGroupChatDto, createOrGetPersonalChatDto } from '../dtos/chat.dto';
+import { _createGroupChat, _createOrGetPersonalChat, _getChat } from '../services/chat.service';
 import { ApiResponse } from '../utils/api-response';
 import InputValidator from '../utils/validator';
 
@@ -14,4 +14,10 @@ export async function createGroupChat(req: Request): Promise<ApiResponse> {
   const data = await InputValidator(createGroupChatDto, req.body);
   const groupChat = await _createGroupChat(req.currentUser, data);
   return new ApiResponse(groupChat);
+}
+
+export async function getChat(req: Request): Promise<ApiResponse> {
+  const data = await InputValidator(GetChatDto, req.params);
+  const chat = await _getChat(req.currentUser, data);
+  return new ApiResponse(chat);
 }

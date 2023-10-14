@@ -25,6 +25,10 @@ const statuses: Statuses = {
   603: {
     statusCode: 404,
     message: 'User does not exist'
+  },
+  610: {
+    statusCode: 404,
+    message: 'chat does not exist'
   }
 };
 
