@@ -15,13 +15,13 @@ export class MessageAttachmentType {
   type!: MessageAttachmentTypesEnum;
 }
 
-export class createOrGetPersonalChatDto {
+export class CreateOrGetPersonalChatDto {
   @IsUUID('4')
   @IsNotEmpty()
   receiverId!: string;
 }
 
-export class createGroupChatDto {
+export class CreateGroupChatDto {
   @Length(3, 50)
   @IsString()
   @IsNotEmpty()
