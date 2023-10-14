@@ -21,6 +21,10 @@ const statuses: Statuses = {
   602: {
     statusCode: 400,
     message: 'Wrong password'
+  },
+  603: {
+    statusCode: 404,
+    message: 'User does not exist'
   }
 };
 

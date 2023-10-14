@@ -1,10 +1,14 @@
 import { Op, literal } from 'sequelize';
 import { Chat } from '../models/chat.model';
 import { UserChat } from '../models/user-chat.model';
+import { User } from '../models/user.model';
 import sequelize from '../utils/db';
+import ApiError from '../utils/api-error';
 
 export async function _createOrGetPersonalChat(currentUser: any, input: any) {
   return await sequelize.transaction(async trx => {
+    const receiver = await User.findOne({ where: { id: input.receiverId } });
+    if (!receiver) throw new ApiError(603);
     const chatId = await getChatIdIfPersonalChatExists([currentUser.id, input.receiverId]);
     if (chatId) return await Chat.findOne({ where: { id: chatId }, raw: true });
     return await createPersonalChat([currentUser.id, input.receiverId]);
