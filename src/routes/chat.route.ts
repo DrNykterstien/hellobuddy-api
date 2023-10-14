@@ -1,10 +1,12 @@
 import { Router } from 'express';
-import { createOrGetPersonalChat } from '../controllers/chat.controller';
+import { createGroupChat, createOrGetPersonalChat } from '../controllers/chat.controller';
 import asyncHandler from '../middlewares/async-handler.middleware';
 import authenticated from '../middlewares/auth.middleware';
 
 const chatRouter = Router();
 
 chatRouter.post('/personal/:receiverId', authenticated, asyncHandler(createOrGetPersonalChat));
+
+chatRouter.post('/group', authenticated, asyncHandler(createGroupChat));
 
 export default chatRouter;

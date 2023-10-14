@@ -2,8 +2,9 @@ import { Op, literal } from 'sequelize';
 import { Chat } from '../models/chat.model';
 import { UserChat } from '../models/user-chat.model';
 import { User } from '../models/user.model';
-import sequelize from '../utils/db';
 import ApiError from '../utils/api-error';
+import sequelize from '../utils/db';
+import { trimAllSpaces } from '../utils/helpers';
 
 export async function _createOrGetPersonalChat(currentUser: any, input: any) {
   return await sequelize.transaction(async trx => {
@@ -12,6 +13,28 @@ export async function _createOrGetPersonalChat(currentUser: any, input: any) {
     const chatId = await getChatIdIfPersonalChatExists([currentUser.id, input.receiverId]);
     if (chatId) return await Chat.findOne({ where: { id: chatId }, raw: true });
     return await createPersonalChat([currentUser.id, input.receiverId]);
+  });
+}
+
+export async function _createGroupChat(currentUser: any, input: any) {
+  return await sequelize.transaction(async trx => {
+    const participants = await User.findAll({
+      where: { id: input.participants },
+      attributes: ['id'],
+      raw: true
+    });
+
+    let participantIds = participants.map(participant => participant.id);
+    participantIds = participantIds.filter(id => id !== currentUser.id);
+
+    const chat = await Chat.create({ name: trimAllSpaces(input.name), isGroupChat: true });
+    const transformedUserChats = transformForCreateUserChatsForGroupChat(
+      chat.id,
+      currentUser.id,
+      participantIds
+    );
+    await UserChat.bulkCreate(transformedUserChats);
+    return chat;
   });
 }
 
@@ -50,4 +73,16 @@ function transformForCreateUserChat(chatId: string, userIds: [string, string]) {
   const userChat1 = { chatId, userId: userIds[0] };
   const userChat2 = { chatId, userId: userIds[1] };
   return [userChat1, userChat2];
+}
+
+function transformForCreateUserChatsForGroupChat(
+  chatId: string,
+  adminId: string,
+  userIds: string[]
+) {
+  const userChats = userIds.map(id => {
+    return { chatId, userId: id };
+  });
+  const adminUserChat = { chatId, userId: adminId, isChatAdmin: true };
+  return [...userChats, adminUserChat];
 }
