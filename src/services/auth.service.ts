@@ -10,7 +10,7 @@ import { Socket } from 'socket.io';
 import env from '../utils/env-vars';
 
 export async function _register(input: any) {
-  return sequelize.transaction(async trx => {
+  return await sequelize.transaction(async trx => {
     const existedUserWithEmail = await User.findOne({
       where: { email: { [Op.iLike]: input.email } }
     });
@@ -22,7 +22,7 @@ export async function _register(input: any) {
 }
 
 export async function _login(input: any) {
-  return sequelize.transaction(async trx => {
+  return await sequelize.transaction(async trx => {
     const user = await User.findOne({
       where: { email: { [Op.iLike]: input.email } },
       raw: true

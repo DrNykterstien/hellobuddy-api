@@ -6,10 +6,12 @@ import { ApiResponse } from '../utils/api-response';
 import swaggerRouter from './swagger.route';
 import authRouter from './auth.route';
 import userRouter from './user.route';
+import chatRouter from './chat.route';
 
 const apiRouteMap = {
   '/auth': authRouter,
-  '/users': userRouter
+  '/users': userRouter,
+  '/chats': chatRouter
 };
 
 function addApiRoutes(app: Application) {
