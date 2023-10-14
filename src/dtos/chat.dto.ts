@@ -21,6 +21,12 @@ export class CreateOrGetPersonalChatDto {
   receiverId!: string;
 }
 
+export class GetChatDto {
+  @IsUUID('4')
+  @IsNotEmpty()
+  chatId!: string;
+}
+
 export class CreateGroupChatDto {
   @Length(3, 50)
   @IsString()
@@ -35,8 +41,15 @@ export class CreateGroupChatDto {
   participants!: string[];
 }
 
-export class GetChatDto {
+export class AddParticipantsDto {
   @IsUUID('4')
   @IsNotEmpty()
   chatId!: string;
+
+  @IsUUID('4', { each: true })
+  @ArrayUnique()
+  @ArrayMaxSize(20)
+  @ArrayMinSize(1)
+  @ArrayNotEmpty()
+  participants!: string[];
 }

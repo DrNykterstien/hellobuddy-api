@@ -29,6 +29,10 @@ const statuses: Statuses = {
   610: {
     statusCode: 404,
     message: 'chat does not exist'
+  },
+  611: {
+    statusCode: 403,
+    message: 'You are not chat admin'
   }
 };
 

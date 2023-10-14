@@ -6,6 +6,20 @@ import ApiError from '../utils/api-error';
 import sequelize from '../utils/db';
 import { trimAllSpaces } from '../utils/helpers';
 
+export async function _getChat(currentUser: any, input: any) {
+  return await sequelize.transaction(async trx => {
+    const { chatId } = input;
+    const userChat = await UserChat.findOne({
+      where: { userId: currentUser.id, chatId }
+    });
+    if (!userChat) throw new ApiError(610);
+    const chat = await Chat.findOne({
+      where: { id: chatId },
+      raw: true
+    });
+    return chat;
+  });
+}
 export async function _createOrGetPersonalChat(currentUser: any, input: any) {
   return await sequelize.transaction(async trx => {
     const receiver = await User.findOne({ where: { id: input.receiverId } });
@@ -38,18 +52,56 @@ export async function _createGroupChat(currentUser: any, input: any) {
   });
 }
 
-export async function _getChat(currentUser: any, input: any) {
+export async function _addParticipants(currentUser: any, input: any) {
   return await sequelize.transaction(async trx => {
-    const { chatId } = input;
-    const userChat = await UserChat.findOne({
-      where: { userId: currentUser.id, chatId }
-    });
-    if (!userChat) throw new ApiError(610);
-    const chat = await Chat.findOne({
-      where: { id: chatId },
+    const { chatId, participants } = input;
+
+    const result = await UserChat.findAll({
+      attributes: ['userId', 'isChatAdmin'],
+      where: { chatId },
+      include: [
+        {
+          attributes: [],
+          model: Chat,
+          where: {
+            isGroupChat: true
+          }
+        }
+      ],
+      order: [['isChatAdmin', 'DESC']],
       raw: true
     });
-    return chat;
+
+    if (!result.length) throw new ApiError(610);
+
+    const groupAdminIds: string[] = [];
+    const groupParticipantIds: string[] = [];
+    result.forEach(e => {
+      if (!e.isChatAdmin) groupParticipantIds.push(e.userId);
+      else groupAdminIds.push(e.userId);
+    });
+
+    if (![...groupAdminIds, ...groupParticipantIds].includes(currentUser.id))
+      throw new ApiError(610);
+
+    if (!groupAdminIds.includes(currentUser.id)) throw new ApiError(611);
+
+    const newParticipants = participants.filter(
+      (id: string) => !groupAdminIds.includes(id) && !groupParticipantIds.includes(id)
+    );
+
+    const validParticipants = await User.findAll({
+      where: { id: newParticipants },
+      attributes: ['id'],
+      raw: true
+    });
+
+    const userChats = validParticipants.map(user => {
+      return { chatId, userId: user.id };
+    });
+
+    await UserChat.bulkCreate(userChats);
+    return true;
   });
 }
 
