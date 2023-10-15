@@ -3,13 +3,15 @@ import {
   AddParticipantsDto,
   CreateGroupChatDto,
   CreateOrGetPersonalChatDto,
-  GetChatDto
+  GetChatDto,
+  RemoveParticipantDto
 } from '../dtos/chat.dto';
 import {
   _addParticipants,
   _createGroupChat,
   _createOrGetPersonalChat,
-  _getChat
+  _getChat,
+  _removeParticipant
 } from '../services/chat.service';
 import { ApiResponse } from '../utils/api-response';
 import InputValidator from '../utils/validator';
@@ -34,6 +36,12 @@ export async function createGroupChat(req: Request): Promise<ApiResponse> {
 
 export async function addParticipants(req: Request): Promise<ApiResponse> {
   const data = await InputValidator(AddParticipantsDto, { ...req.body, ...req.params });
-  const chat = await _addParticipants(req.currentUser, data);
-  return new ApiResponse(chat);
+  const result = await _addParticipants(req.currentUser, data);
+  return new ApiResponse(result);
+}
+
+export async function removeParticipant(req: Request): Promise<ApiResponse> {
+  const data = await InputValidator(RemoveParticipantDto, req.params);
+  const result = await _removeParticipant(req.currentUser, data);
+  return new ApiResponse(result);
 }

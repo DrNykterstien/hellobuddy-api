@@ -105,6 +105,50 @@ export async function _addParticipants(currentUser: any, input: any) {
   });
 }
 
+export async function _removeParticipant(currentUser: any, input: any) {
+  return await sequelize.transaction(async trx => {
+    const { chatId, participantId } = input;
+
+    const result = await UserChat.findAll({
+      attributes: ['userId', 'isChatAdmin'],
+      where: { chatId },
+      include: [
+        {
+          attributes: [],
+          model: Chat,
+          where: {
+            isGroupChat: true
+          }
+        }
+      ],
+      order: [['isChatAdmin', 'DESC']],
+      raw: true
+    });
+
+    if (!result.length) throw new ApiError(610);
+
+    const groupAdminIds: string[] = [];
+    const groupParticipantIds: string[] = [];
+    result.forEach(e => {
+      if (!e.isChatAdmin) groupParticipantIds.push(e.userId);
+      else groupAdminIds.push(e.userId);
+    });
+
+    if (![...groupAdminIds, ...groupParticipantIds].includes(currentUser.id))
+      throw new ApiError(610);
+
+    if (!groupAdminIds.includes(currentUser.id)) throw new ApiError(611);
+
+    if (currentUser.id === participantId && groupAdminIds.length === 1) throw new ApiError(612);
+
+    if (![...groupAdminIds, ...groupParticipantIds].includes(participantId))
+      throw new ApiError(613);
+
+    await UserChat.destroy({ where: { chatId, userId: participantId } });
+    return true;
+  });
+}
+
 async function getChatIdIfPersonalChatExists(userIds: [string, string]) {
   const result = await UserChat.findAll({
     attributes: ['chatId'],

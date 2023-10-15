@@ -53,3 +53,13 @@ export class AddParticipantsDto {
   @ArrayNotEmpty()
   participants!: string[];
 }
+
+export class RemoveParticipantDto {
+  @IsUUID('4')
+  @IsNotEmpty()
+  chatId!: string;
+
+  @IsUUID('4')
+  @IsNotEmpty()
+  participantId!: string;
+}

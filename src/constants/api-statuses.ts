@@ -33,6 +33,14 @@ const statuses: Statuses = {
   611: {
     statusCode: 403,
     message: 'You are not chat admin'
+  },
+  612: {
+    statusCode: 400,
+    message: 'Can not remove yourself as the solo admin'
+  },
+  613: {
+    statusCode: 400,
+    message: 'Participant does not exist'
   }
 };
 
