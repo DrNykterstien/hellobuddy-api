@@ -149,6 +149,46 @@ export async function _removeParticipant(currentUser: any, input: any) {
   });
 }
 
+export async function _leaveGroupChat(currentUser: any, input: any) {
+  return await sequelize.transaction(async trx => {
+    const { chatId } = input;
+
+    const result = await UserChat.findAll({
+      attributes: ['userId', 'isChatAdmin'],
+      where: { chatId },
+      include: [
+        {
+          attributes: [],
+          model: Chat,
+          where: {
+            isGroupChat: true
+          }
+        }
+      ],
+      order: [['isChatAdmin', 'DESC']],
+      raw: true
+    });
+
+    if (!result.length) throw new ApiError(610);
+
+    const groupAdminIds: string[] = [];
+    const groupParticipantIds: string[] = [];
+    result.forEach(e => {
+      if (!e.isChatAdmin) groupParticipantIds.push(e.userId);
+      else groupAdminIds.push(e.userId);
+    });
+
+    if (![...groupAdminIds, ...groupParticipantIds].includes(currentUser.id))
+      throw new ApiError(610);
+
+    if (groupAdminIds.length === 1 && groupAdminIds.includes(currentUser.id))
+      throw new ApiError(612);
+
+    await UserChat.destroy({ where: { chatId, userId: currentUser.id } });
+    return true;
+  });
+}
+
 async function getChatIdIfPersonalChatExists(userIds: [string, string]) {
   const result = await UserChat.findAll({
     attributes: ['chatId'],

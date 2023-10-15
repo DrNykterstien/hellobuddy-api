@@ -4,6 +4,7 @@ import {
   createGroupChat,
   createOrGetPersonalChat,
   getChat,
+  leaveGroupChat,
   removeParticipant
 } from '../controllers/chat.controller';
 import asyncHandler from '../middlewares/async-handler.middleware';
@@ -19,7 +20,10 @@ chatRouter.post('/personal/:receiverId', asyncHandler(createOrGetPersonalChat));
 
 chatRouter.post('/group', asyncHandler(createGroupChat));
 
-chatRouter.post('/group/:chatId/participants', asyncHandler(addParticipants));
+chatRouter
+  .route('/group/:chatId/participants')
+  .post(asyncHandler(addParticipants))
+  .delete(asyncHandler(leaveGroupChat));
 chatRouter.delete('/group/:chatId/participants/:participantId', asyncHandler(removeParticipant));
 
 export default chatRouter;

@@ -63,3 +63,9 @@ export class RemoveParticipantDto {
   @IsNotEmpty()
   participantId!: string;
 }
+
+export class LeaveGroupChatDto {
+  @IsUUID('4')
+  @IsNotEmpty()
+  chatId!: string;
+}
