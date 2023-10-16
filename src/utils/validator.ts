@@ -2,9 +2,9 @@ import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import ApiError from './api-error';
 
-async function InputValidator(schema: any, input: any) {
+async function InputValidator(schema: any, input: any, stripUnknown = true) {
   const obj = plainToInstance(schema, input, { enableImplicitConversion: true });
-  const errors = await validate(obj);
+  const errors = await validate(obj, { whitelist: stripUnknown });
   if (errors.length > 0) {
     const msg = errors
       .map(e => {
