@@ -55,31 +55,8 @@ export async function _createGroupChat(currentUser: any, input: any) {
 export async function _addParticipants(currentUser: any, input: any) {
   return await sequelize.transaction(async trx => {
     const { chatId, participants } = input;
-
-    const result = await UserChat.findAll({
-      attributes: ['userId', 'isChatAdmin'],
-      where: { chatId },
-      include: [
-        {
-          attributes: [],
-          model: Chat,
-          where: {
-            isGroupChat: true
-          }
-        }
-      ],
-      order: [['isChatAdmin', 'DESC']],
-      raw: true
-    });
-
-    if (!result.length) throw new ApiError(610);
-
-    const groupAdminIds: string[] = [];
-    const groupParticipantIds: string[] = [];
-    result.forEach(e => {
-      if (!e.isChatAdmin) groupParticipantIds.push(e.userId);
-      else groupAdminIds.push(e.userId);
-    });
+    const { groupAdminIds, groupParticipantIds } =
+      await getExistedGroupChatAdminsAndParticipants(chatId);
 
     if (![...groupAdminIds, ...groupParticipantIds].includes(currentUser.id))
       throw new ApiError(610);
@@ -87,16 +64,15 @@ export async function _addParticipants(currentUser: any, input: any) {
     if (!groupAdminIds.includes(currentUser.id)) throw new ApiError(611);
 
     const newParticipants = participants.filter(
-      (id: string) => !groupAdminIds.includes(id) && !groupParticipantIds.includes(id)
+      (id: string) => ![...groupAdminIds, ...groupParticipantIds].includes(id)
     );
-
-    const validParticipants = await User.findAll({
+    const validNewParticipants = await User.findAll({
       where: { id: newParticipants },
       attributes: ['id'],
       raw: true
     });
 
-    const userChats = validParticipants.map(user => {
+    const userChats = validNewParticipants.map(user => {
       return { chatId, userId: user.id };
     });
 
@@ -108,41 +84,18 @@ export async function _addParticipants(currentUser: any, input: any) {
 export async function _removeParticipant(currentUser: any, input: any) {
   return await sequelize.transaction(async trx => {
     const { chatId, participantId } = input;
-
-    const result = await UserChat.findAll({
-      attributes: ['userId', 'isChatAdmin'],
-      where: { chatId },
-      include: [
-        {
-          attributes: [],
-          model: Chat,
-          where: {
-            isGroupChat: true
-          }
-        }
-      ],
-      order: [['isChatAdmin', 'DESC']],
-      raw: true
-    });
-
-    if (!result.length) throw new ApiError(610);
-
-    const groupAdminIds: string[] = [];
-    const groupParticipantIds: string[] = [];
-    result.forEach(e => {
-      if (!e.isChatAdmin) groupParticipantIds.push(e.userId);
-      else groupAdminIds.push(e.userId);
-    });
+    const { groupAdminIds, groupParticipantIds } =
+      await getExistedGroupChatAdminsAndParticipants(chatId);
 
     if (![...groupAdminIds, ...groupParticipantIds].includes(currentUser.id))
       throw new ApiError(610);
 
     if (!groupAdminIds.includes(currentUser.id)) throw new ApiError(611);
 
-    if (currentUser.id === participantId && groupAdminIds.length === 1) throw new ApiError(612);
-
     if (![...groupAdminIds, ...groupParticipantIds].includes(participantId))
       throw new ApiError(613);
+
+    if (currentUser.id === participantId && groupAdminIds.length === 1) throw new ApiError(612);
 
     await UserChat.destroy({ where: { chatId, userId: participantId } });
     return true;
@@ -152,36 +105,13 @@ export async function _removeParticipant(currentUser: any, input: any) {
 export async function _leaveGroupChat(currentUser: any, input: any) {
   return await sequelize.transaction(async trx => {
     const { chatId } = input;
-
-    const result = await UserChat.findAll({
-      attributes: ['userId', 'isChatAdmin'],
-      where: { chatId },
-      include: [
-        {
-          attributes: [],
-          model: Chat,
-          where: {
-            isGroupChat: true
-          }
-        }
-      ],
-      order: [['isChatAdmin', 'DESC']],
-      raw: true
-    });
-
-    if (!result.length) throw new ApiError(610);
-
-    const groupAdminIds: string[] = [];
-    const groupParticipantIds: string[] = [];
-    result.forEach(e => {
-      if (!e.isChatAdmin) groupParticipantIds.push(e.userId);
-      else groupAdminIds.push(e.userId);
-    });
+    const { groupAdminIds, groupParticipantIds } =
+      await getExistedGroupChatAdminsAndParticipants(chatId);
 
     if (![...groupAdminIds, ...groupParticipantIds].includes(currentUser.id))
       throw new ApiError(610);
 
-    if (groupAdminIds.length === 1 && groupAdminIds.includes(currentUser.id))
+    if (groupAdminIds.includes(currentUser.id) && groupAdminIds.length === 1)
       throw new ApiError(612);
 
     await UserChat.destroy({ where: { chatId, userId: currentUser.id } });
@@ -236,4 +166,32 @@ function transformForCreateUserChatsForGroupChat(
   });
   const adminUserChat = { chatId, userId: adminId, isChatAdmin: true };
   return [...userChats, adminUserChat];
+}
+
+async function getExistedGroupChatAdminsAndParticipants(chatId: string) {
+  const result = await UserChat.findAll({
+    attributes: ['userId', 'isChatAdmin'],
+    where: { chatId },
+    include: [
+      {
+        attributes: [],
+        model: Chat,
+        where: {
+          isGroupChat: true
+        }
+      }
+    ],
+    order: [['isChatAdmin', 'DESC']],
+    raw: true
+  });
+
+  if (!result.length) throw new ApiError(610);
+
+  const groupAdminIds: string[] = [];
+  const groupParticipantIds: string[] = [];
+  result.forEach(e => {
+    if (!e.isChatAdmin) groupParticipantIds.push(e.userId);
+    else groupAdminIds.push(e.userId);
+  });
+  return { groupAdminIds, groupParticipantIds };
 }
