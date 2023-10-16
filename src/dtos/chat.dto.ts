@@ -4,6 +4,7 @@ import {
   ArrayNotEmpty,
   ArrayUnique,
   IsNotEmpty,
+  IsOptional,
   IsString,
   IsUUID,
   Length
@@ -68,4 +69,15 @@ export class LeaveGroupChatDto {
   @IsUUID('4')
   @IsNotEmpty()
   chatId!: string;
+}
+
+export class UpdateGroupChatDto {
+  @IsUUID('4')
+  @IsNotEmpty()
+  chatId!: string;
+
+  @Length(3, 50)
+  @IsString()
+  @IsOptional()
+  name?: string;
 }

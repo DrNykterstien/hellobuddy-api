@@ -119,6 +119,18 @@ export async function _leaveGroupChat(currentUser: any, input: any) {
   });
 }
 
+export async function _updateGroupChat(currentUser: any, input: any) {
+  const { chatId, ...updateData } = input;
+  const { groupAdminIds, groupParticipantIds } =
+    await getExistedGroupChatAdminsAndParticipants(chatId);
+
+  if (![...groupAdminIds, ...groupParticipantIds].includes(currentUser.id)) throw new ApiError(610);
+  if (!groupAdminIds.includes(currentUser.id)) throw new ApiError(611);
+
+  const groupChat = await Chat.update(updateData, { where: { id: chatId }, returning: true });
+  return groupChat[1][0];
+}
+
 async function getChatIdIfPersonalChatExists(userIds: [string, string]) {
   const result = await UserChat.findAll({
     attributes: ['chatId'],
