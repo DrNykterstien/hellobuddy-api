@@ -57,7 +57,7 @@ export async function leaveGroupChat(req: Request): Promise<ApiResponse> {
 }
 
 export async function updateGroupChat(req: Request): Promise<ApiResponse> {
-  const data = await InputValidator(UpdateGroupChatDto, { ...req.body, ...req.params }, true);
+  const data = await InputValidator(UpdateGroupChatDto, { ...req.body, ...req.params });
   const groupChat = await _updateGroupChat(req.currentUser, data);
   return new ApiResponse(groupChat);
 }

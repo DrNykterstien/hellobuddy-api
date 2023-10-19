@@ -1,17 +1,19 @@
-import _ from 'lodash';
 import { Application, Request, Router } from 'express';
-import Logger from '../utils/logger';
+import _ from 'lodash';
 import asyncHandler from '../middlewares/async-handler.middleware';
 import { ApiResponse } from '../utils/api-response';
-import swaggerRouter from './swagger.route';
+import Logger from '../utils/logger';
 import authRouter from './auth.route';
-import userRouter from './user.route';
 import chatRouter from './chat.route';
+import messageRouter from './message.route';
+import swaggerRouter from './swagger.route';
+import userRouter from './user.route';
 
 const apiRouteMap = {
   '/auth': authRouter,
   '/users': userRouter,
-  '/chats': chatRouter
+  '/chats': chatRouter,
+  '/messages': messageRouter
 };
 
 function addApiRoutes(app: Application) {
