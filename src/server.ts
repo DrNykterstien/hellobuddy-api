@@ -1,9 +1,11 @@
+import { join } from 'path';
 import cors from 'cors';
 import helmet from 'helmet';
 import express, { json, urlencoded } from 'express';
 import { createServer, Server as HttpServer } from 'http';
 import { Server } from 'socket.io';
 import { initSocketIO } from './socket';
+import { initializeUploadDirectories } from './utils/dirs-initializer';
 import addApiRoutes from './routes';
 import env from './utils/env-vars';
 import errorHandler from './middlewares/error.middleware';
@@ -24,9 +26,12 @@ function buildServer(): HttpServer {
 
   app.set('io', io);
   initSocketIO(io);
+  initializeUploadDirectories();
 
   app.use(urlencoded({ extended: true }));
   app.use(json({ limit: '16kb' }));
+
+  app.use(express.static(join(__dirname, '..', 'public')));
 
   app.use(cors(corsOptions));
 

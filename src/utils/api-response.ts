@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { MulterError } from 'multer';
 import statuses from '../constants/api-statuses';
 import ApiError from './api-error';
 
@@ -17,6 +18,10 @@ export function handleApiResponse(customRes: ApiResponse, res: Response) {
 }
 
 export function handleErrorResponse(error: any, res: Response) {
+  if (error instanceof MulterError) {
+    res.status(400);
+    return res.json({ data: null, message: error.message });
+  }
   if (!(error instanceof ApiError)) error = new ApiError();
   let statusCode, message;
   const code = error['code'];
